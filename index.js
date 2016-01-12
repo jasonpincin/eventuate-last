@@ -3,30 +3,39 @@ var Promise        = require('promise-polyfill'),
     CancelledError = require('./errors').CancelledError
 
 module.exports = function eventuateLast (eventuate, cb) {
-  if (typeof eventuate.destroyed !== 'function')
-    throw new TypeError('first argument should be a non-basic eventuate')
+  if (typeof eventuate.consume !== 'function')
+    throw new TypeError('first argument must be an eventuate')
 
   var done = eventuate.isDestroyed()
     ? Promise.reject(new CancelledError('eventuate already destroyed'))
     : new Promise(function lastPromise (resolve, reject) {
       var lastValue
-      consumer.removed = consumerRemoved
-      eventuate.consume(consumer)
-      eventuate.destroyed.consume(onDestroyed)
+      var consumption = eventuate.consume(onData, onError)
+      consumption.once('end', cancel)
+      eventuate.once('destroy', finish)
 
-      function onDestroyed () {
-        resolve(lastValue)
-      }
-
-      function consumer (data) {
+      function onData (data) {
         lastValue = data
       }
 
-      function consumerRemoved () {
-        if (!eventuate.isDestroyed())
-          reject(new CancelledError('eventuate consumer removed'))
-        eventuate.removeConsumer(consumer)
-        eventuate.destroyed.removeConsumer(onDestroyed)
+      function onError (err) {
+        reject(err)
+        cleanup()
+      }
+
+      function finish () {
+        resolve(lastValue)
+        cleanup()
+      }
+
+      function cancel () {
+        reject(new CancelledError('eventuate consumer removed'))
+        cleanup()
+      }
+
+      function cleanup () {
+        consumption.removeListener('end', cancel)
+        consumption.end()
       }
     })
   return after(done, cb)

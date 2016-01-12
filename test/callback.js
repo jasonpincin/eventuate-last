@@ -11,11 +11,11 @@ test('last accepts a callback', function (t) {
   last(event, function consume (_, data) {
     t.equals(data, 'test', 'callback consumer receives data')
   })
-  t.equals(event.getConsumers().length, 1,
+  t.equals(event.consumers().length, 1,
            '.consumers should contain last consumer')
   event.produce('test')
   event.destroy()
-  t.equals(event.getConsumers().length, 0,
+  t.equals(event.consumers().length, 0,
            'last consumer removed from consumers after callback called')
 })
 

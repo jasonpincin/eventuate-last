@@ -11,11 +11,11 @@ test('last returns a promise that resolves', function (t) {
   last(event).then(function (data) {
     t.equals(data, 'abc', 'promise resolves with data')
   })
-  t.equals(event.getConsumers().length, 1, '.consumers contains last consumer')
+  t.equals(event.consumers().length, 1, '.consumers contains last consumer')
   event.produce('test')
   event.produce('abc')
   event.destroy()
-  t.equals(event.getConsumers().length, 0,
+  t.equals(event.consumers().length, 0,
            'last consumer removed from consumers promise resolves')
 })
 
